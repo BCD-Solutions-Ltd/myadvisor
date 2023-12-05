@@ -1,5 +1,6 @@
 from flask import request
-from App.controllers.course import get_all_course_codes, get_all_courses
+from App.controllers.course import courses_Sorted_byCredits, courses_Sorted_byRating, courses_Sorted_electives_first, get_all_course_codes, get_all_courses
+from App.controllers.courseHistory import getCompletedCourseCodes
 from App.models import CoursePlan, Course, Student, Program
 from App.database import db 
 from App.controllers import program
@@ -11,6 +12,7 @@ from App.controllers import (
     
     
 )
+from App.models.courseHistory import CourseHistory
 
 def convertToList(iterable):
     return list(iterable)
@@ -50,8 +52,9 @@ def update_course_plan(plan_id):
 
 
 def possessPrereqs(Student, course):
-    preqs = getPrereqCodes(course.courseName)
-    completed = Student.course_history
+    preqs = getPrereqCodes(course)
+    student_id = Student.id
+    completed = CourseHistory.query.get(student_id)
     for course in preqs:
         if course not in completed:
             return False
@@ -121,6 +124,8 @@ def addCourseToPlan(Student, courseCode):
                 if plan:
                     create_CoursePlan(plan.planId, courseCode)
                     print("Course successfully added to course plan")
+                    #plan_id = plan.planID
+                    #plan_id_student = students.
                     return plan
                 else:
                     plan = create_CoursePlan(Student.id)
@@ -246,7 +251,7 @@ def checkPrereq(Student, recommnded):
 def getTopfive(list):
     return list[:5]
 
-def PrioritizeElectivesStrategy(Student):
+#def PrioritizeElectivesStrategy(Student):
     program = get_program_by_id(Student.program_id)
     completed = Student.course_history
     codesSortedbyelectives = program.programCourses_SortedbyElectivesFirst(Student.program_id)
@@ -293,19 +298,38 @@ def removeCoursesFromList(list1,list2):
     
 
 def EasyCoursesStrategy(Student):
-    program = get_program_by_id(Student.program_id)
-    completed = Student.course_history
-    codesSortedbyRating = program.programCourses_SortedbyHighestRating(Student.program_id)
-
+    #program = get_program_by_id(Student.program_id)
+    student_id = Student.id
+    completed = getCompletedCourseCodes(student_id)
+    codesSortedbyRating = courses_Sorted_byRating()
+    
     coursesToDo = removeCoursesFromList(completed, codesSortedbyRating)
-    
-    coursesToDo = findAvailable(coursesToDo)
+    top_five_courses =getTopfive(coursesToDo)
+    #for course_code in top_five_courses:
+        #course = Course.query.filter_by(courseCode=course_c0de).first()
+        #addCourseToPlan(student_id, course_code)
 
-    ableToDo = checkPrereq(Student, coursesToDo)
-    # for a in ableToDo:
-    #     print(a)
+    return top_five_courses
     
-    return getTopfive(ableToDo)
+   
+    return getTopfive(coursesToDo)
+
+
+def PrioritizeElectivesStrategy(Student):
+    sortedCourses = courses_Sorted_electives_first()
+
+    student_id = Student.id
+    completed = getCompletedCourseCodes(student_id)
+    coursesToDo = removeCoursesFromList(completed, sortedCourses)
+    
+    #coursesToDo = findAvailable(coursesToDo)
+    #ableToDo = checkPrereq(Student, coursesToDo)
+    top_five_courses =getTopfive(coursesToDo)
+    #for course_code in top_five_courses:
+        #course = Course.query.filter_by(courseCode=course_c0de).first()
+        #addCourseToPlan(student_id, course_code)
+
+    return getTopfive(sortedCourses)
 
 
 
@@ -360,27 +384,37 @@ def CustomPlanStrategy(Student):
             if 1 <= choice <= len(available_courses):
                 chosen_course = available_courses[choice - 1]
                 chosen_courses.append(chosen_course)
+                #addCourseToPlan(student, chosen_course)
                 available_courses.remove(chosen_course)
             else:
                 print("Invalid choice. Please enter a valid number.")
                 i -= 1
+        
         except ValueError:
             print("Invalid input. Please enter a number.")
+        
+        
    
 
 
 
 def FastGradStrategy(Student):
-    program = get_program_by_id(Student.program_id)
-    sortedCourses = program.programCourses_SortedbyHighestCredits(Student.program_id)
-    completed = Student.course_history
+    #program = get_program_by_id(Student.program_id)
+    sortedCourses = courses_Sorted_byCredits()
 
+    student_id = Student.id
+    completed = getCompletedCourseCodes(student_id)
     coursesToDo = removeCoursesFromList(completed, sortedCourses)
     
-    coursesToDo = findAvailable(coursesToDo)
-    ableToDo = checkPrereq(Student, coursesToDo)
+    #coursesToDo = findAvailable(coursesToDo)
+    #ableToDo = checkPrereq(Student, coursesToDo)
+    top_five_courses =getTopfive(coursesToDo)
 
-    return getTopfive(ableToDo)
+    #for course_code in top_five_courses:
+        #course = Course.query.filter_by(courseCode=course_c0de).first()
+        #addCourseToPlan(student_id, course_code)
+
+    return getTopfive(coursesToDo)
 
 #def commandCall(Student, command):
     courses = []

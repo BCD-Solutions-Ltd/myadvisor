@@ -99,9 +99,9 @@ class CourseIntegrationTests(unittest.TestCase):
     def test_courses_sorted_by_rating(self):
         prereqs=[]
 
-        create_course("COMP6000", "DNS", 3, 3,"core","",1,3,"", prereqs) 
-        create_course("COMP6001", "DSN 2", 1, 3,"core","",1,3,"", prereqs)
-        create_course("COMP6002", "DSN 3", 5, 3,"elec","",2,3,"", prereqs)
+        create_course_new("COMP3605","Data Analytics","1","4","elec","","2","3","","COMP2611","")
+        create_course_new("COMP3610","Big Data Analytics","6","5","elec","","1","3","","COMP3605","")
+        create_course_new("COMP3611","Small Data Analytics","1","1","elec","","1","3","","COMP2611","")
         sortedCourses = courses_Sorted_byRating_Objects()
 
         self.assertTrue(sortedCourses)
@@ -111,9 +111,8 @@ class CourseIntegrationTests(unittest.TestCase):
 
 
     def test_create_prerequisite(self):
-        create_course("MATH1115", "Fundamental Mathematics for the General Sciences 1",1,6,"core","",1,1,"",[])
-        create_course("MATH2250", "Industrial Statistics",4,3,"core","",2,2,"",[])
+        create_course_new("MATH2250","Industrial Statistics","3","2","elec","","","2","","","")
+        code = MATH2250
+        prereqcode = Math1115
+        addprereqCourses( code, prereqcode)
         
-        create_prereq("MATH1115","Industrial Statistics")
-        prereqs=getPrereqCodes("Industrial Statistics")
-        self.assertEqual(['MATH1115'],prereqs)

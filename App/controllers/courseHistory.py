@@ -2,8 +2,8 @@ from App.database import db
 from flask import jsonify
 from App.models import CourseHistory  
 
-def create_course_history(course_id, student_id):
-    new_course_history = CourseHistory(course_id=course_id, student_id=student_id)
+def create_course_history(course_id, student_id, grade):
+    new_course_history = CourseHistory(course_id=course_id, student_id=student_id, grade=grade)
     db.session.add(new_course_history)
     db.session.commit()
     return jsonify({'message': 'Course history created successfully'})
@@ -36,8 +36,9 @@ def add_course_to_course_history(student_id, course_id, grade):
     new_course_history_entry = CourseHistory(
         student_id=student_id,
         course_id=course_id,
-        grade=grade  # You can include the grade if available
+        grade=grade   
     ) 
+    return jsonify({'message': 'Course {course_id} with Grade {grade} added to student with id {student_id}'})
 
 
 def getCompletedCourseCodes(student_id):
@@ -45,7 +46,7 @@ def getCompletedCourseCodes(student_id):
 
     course_ids = [course.course_id for course in completed_courses]
 
-    return jsonify({'course_ids': course_ids}), 200
+    return course_ids, 200
 
 def getCompletedCourseCodesAndGrade(student_id):
     completed_courses = CourseHistory.query.filter_by(student_id=student_id).all()

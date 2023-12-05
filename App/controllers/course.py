@@ -1,4 +1,5 @@
 from flask import request
+from sqlalchemy import desc
 from App.models import Course, Prerequisites, Semester
 from App.controllers import prerequistes, semester
 from App.database import db
@@ -27,8 +28,9 @@ def create_course():
         type= (data['type']),
         rating= int(data['rating']),
         grade=float(data['grade']), 
-        semester_id=semester_id,
+        semester_id = semester_id,
         year=int(data['year']),
+        prereq_id = prereq_id,
         course_plan_id=int(data['course_plan_id'])
     )
 
@@ -36,7 +38,14 @@ def create_course():
     db.session.commit()
     return "Course created successfully", 201
 
-
+def create_course_new(id,courseTitle,credits,rating,type, grade , semester_id ,year ,complete,prereq_id ,course_plan_id ):
+    course = Course.query.get(id)
+    if course:
+        return None
+    new_course = Course(id,courseTitle,credits,rating,type, grade , semester_id ,year ,complete,prereq_id ,course_plan_id )
+    db.session.add(new_course)
+    db.session.commit()
+    return new_course
 
    
 
@@ -54,7 +63,7 @@ def createCoursesfromFile(file_path):
                 semester=row['semester']
                 year=int (row['year'])
                 complete= row['complete']
-                prereq= row['preReq']
+                prereq= row["preReqs"].split(',')
 
                 create_course(courseCode, courseTitle, credits,rating, grade, semester, year, complete, prereq)
                 
@@ -68,11 +77,11 @@ def createCoursesfromFile(file_path):
     print("Courses added successfully.")
     
 def get_course_by_courseCode(code):
-    return Course.query.filter_by(courseCode=code).first()
+    return Course.query.filter_by(id=code).first()
 
 def get_all_course_codes():
     try:
-        course_codes = Course.query.with_entities(Course.courseCode).all()
+        course_codes = Course.query.with_entities(Course.id).all()
         if course_codes:
             return [code[0] for code in course_codes]
         else:
@@ -80,16 +89,54 @@ def get_all_course_codes():
     except Exception as e:
         print(f"Error: {e}")
         return None
-    
+
+def add_prereq_to_course(code, prereq_code):
+    course = Course.query.filter_by(id=code).first()
+    if course:
+            course.prereq = prereq_code
+            db.session.commit()
+            return course
+
+#def addSemesterCourses( code, semester):
+        #course = Course.query.filter_by(id=code).first()
+
+        #if course:
+        #    course.semester = semester
+         #   db.session.commit()
+         #   return course
+       # else:
+           # return {"message": "Course not found"},
+
 
 def courses_Sorted_byRating():
     courses =  Course.query.order_by(Course.rating.asc()).all()
     codes = []
 
     for c in courses:
-        codes.append(c.courseCode)
+        codes.append(c.id)
     
     return codes
+
+
+
+def courses_Sorted_byCredits():
+    courses = Course.query.order_by(desc(Course.credits)).all()
+    codes = []
+
+    for c in courses:
+        codes.append(c.id)
+    
+    return codes
+
+def courses_Sorted_electives_first():
+    courses = Course.query.filter_by(type='elec').order_by(Course.rating.asc()).all()
+    codes = []
+
+    for c in courses:
+        codes.append(c.id)
+    
+    return codes
+
 
 def courses_Sorted_byRating_Objects():
     return Course.query.order_by(Course.rating.asc()).all()
@@ -99,7 +146,7 @@ def courses_Sorted_byRating_Objects():
 
 def get_prerequisites(code):
     course = get_course_by_courseCode(code)
-    prereqs = prerequistes.get_all_prerequisites(course.courseName)
+    prereqs = prerequistes.get_all_prerequisites(code)
     return prereqs
 
 def get_credits(code):
@@ -109,6 +156,16 @@ def get_credits(code):
 def get_ratings(code):
     course = get_course_by_courseCode(code)
     return course.rating if course else 0
+
+def get_all_courses_new():
+    return Course.query.all()
+
+def get_all_courses_new_json():
+    courses = Course.query.all()
+    if not courses:
+        return []
+    courses_json = [course.get_json() for course in courses]
+    return courses_json
 
 def get_all_courses():
     courses = Course.query.all()
@@ -146,15 +203,25 @@ def get_course(course_id):
         return {"message": "Course not found"}, 404
     
 
-def addSemesterCourses(self, code, semester):
+def addSemesterCourses( code, semester):
         course = Course.query.filter_by(id=code).first()
 
         if course:
             course.semester = semester
             db.session.commit()
-            return True
+            return course
         else:
-            return False
+            return {"message": "Course not found"},
+
+def addprereqCourses( code, prereqcode):
+        course = Course.query.filter_by(id=code).first()
+
+        if course:
+            course.prereq = prereqcode
+            db.session.commit()
+            return course
+        else:
+            return {"message": "Course not found"},
 
 def getAllCourses(semester_id):
         
@@ -206,6 +273,11 @@ def delete_course(course_code):
         return {'message': 'Course deleted successfully'}, 200
     else:
         return {'message': 'Course not found'}, 404
+
+
+
+
+
 
 
 

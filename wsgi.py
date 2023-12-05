@@ -25,33 +25,44 @@ def initialize():
     db.drop_all()
     db.create_all()
     create_user('bob', 'bobpass')
-    create_staff('daniel', 'danpass', 'admin')
-    create_staff('derwin', 'derpass', 'dean')
-    create_student('sanjay',  'jaypass', 'DCIT')
-    create_student('mohan',  'pass', 'DCIT')
-    createCoursesfromFile('testData/courseData.csv')
-    create_program("Computer Science Major", 69, 15, 9)
-    # create_student(816, "boo", "testing", "Computer Science Major")
-    # create_staff("admin","999", "admin")
+    create_staff('daniel', 'danpass', 'admin', 1)
+    create_staff('derwin', 'derpass', 'dean', 1)
+    create_student('sanjay',  'jaypass', 'ITMajor')
+    create_student('mohan',  'pass', 'ComputerScienceSpecial')
+    create_department("DCIT")
+    create_department("MATH")
+    create_course_new("COMP2611","Data Structures","6","5","core","","","2","","","")
+    create_course_new("INFO2613","Software Structures","5","2","core","","2","2","","COMP1605","")
+    create_course_new("MATH2250","Industrial Statistics","3","2","elec","","","2","","","")
+    create_course_new("INFO3613","Medium Data Analytics","3","3","elec","","1","3","","","")
+    create_course_new("COMP3605","Data Analytics","1","4","elec","","2","3","","COMP2611","")
+    create_course_new("COMP3610","Big Data Analytics","6","5","elec","","1","3","","COMP3605","")
+    create_course_new("COMP3611","Small Data Analytics","1","1","elec","","1","3","","COMP2611","")
     
-    # for c in test1:
-    #     addCoursetoHistory(816, c)
-    # print('Student course history updated')
+    #createCoursesfromFile('testData/courseData.csv')
+    create_program("Computer Science Major", 69, 15, 1, 2)
+    create_student("boo", "testing", "Computer Science Major")
+    create_staff("admin","999", "admin",1)
+    create_course_history("COMP2611","4","A")
+    
+    #for c in test1:
+    #    addCoursetoHistory(816, c)
+    #print('Student course history updated')
 
-    # with open(file_path, 'r') as file:
-    #     for i, line in enumerate(file):
-    #         line = line.strip()
-    #         if i ==0:
-    #             programName = line
-    #         else:
-    #             course = line.split(',')
-    #             create_programCourse(programName, course[0],int(course[1]))
+    #with open(file_path, 'r') as file:
+     #   for i, line in enumerate(file):
+      #      line = line.strip()
+      #      if i ==0:
+      #          programName = line
+      #      else:
+      #          course = line.split(',')
+      #          create_programCourse(programName, course[0],int(course[1]))
     
-    # file_path1='testData/test2.txt'
-    # with open(file_path1, 'r') as file:
-    #     for i, line in enumerate(file):
-    #         line = line.strip()
-    #         addSemesterCourses(line)
+    #file_path1='testData/test2.txt'
+   # with open(file_path1, 'r') as file:
+      #  for i, line in enumerate(file):
+       #     line = line.strip()
+        #    addSemesterCourses(line)
 
 
 
@@ -109,8 +120,9 @@ def list_staff_command(format):
 @click.argument("core", type=int)
 @click.argument("elective", type=int)
 @click.argument("foun", type=int)
-def create_program_command(name,core,elective,foun):
-  newprogram=create_program(name,core,elective,foun)
+@click.argument("department_id", type=int)
+def create_program_command(name,core,elective,foun,department_id):
+  newprogram=create_program(name,core,elective,foun,department_id)
   print(f'{newprogram.get_json()}')
 
 @staff_cli.command("addprogramcourse",help='testing add program feature')
@@ -124,10 +136,19 @@ def add_program_requirements(name,code,num):
 @staff_cli.command("addofferedcourse",help='testing add courses offered feature')
 @click.argument("code", type=str)
 @click.argument("semester", type=str)
-def add_offered_course(code):
-  course=addSemesterCourses(code, semester.id)
+def add_offered_course(code, semester):
+  course=addSemesterCourses(code, semester)
   if course:
-    print(f'Course details: {course}')
+    print(f'Course details- Course Code: {course} ,Semester offered: {semester}')
+
+@staff_cli.command("addprereqtocourse",help='testing add courses offered feature')
+@click.argument("code", type=str)
+@click.argument("prereq_code", type=str)
+def add_prereq_to_course(code, prereq_code):
+  course=addprereqCourses( code, prereq_code)
+  if course:
+    print(f' Course Code: {course} ,Course prereq: {prereq_code}')
+
 
 app.cli.add_command(staff_cli)
 
@@ -139,12 +160,12 @@ student_cli = AppGroup("student", help="Student object commands")
 
 # Define the student create command
 @student_cli.command("create", help="Creates a student")
-@click.argument("student_id", type=str)
+#@click.argument("student_id", type=str)
 @click.argument("password", type=str)
 @click.argument("name", type=str)
 @click.argument("program", type=str)
-def create_student_command(name, password, program):
-    create_student(name, password, program)
+def create_student_command( name, password, program):
+    create_student( name, password, program)
 
 @student_cli.command("list", help="Lists students in the database")
 @click.argument("format", default="string")
@@ -152,12 +173,13 @@ def list_staff_command(format):
     print(get_all_students_json())
 
 
-@student_cli.command("addCourse", help="Student adds a completed course to their history")
+@student_cli.command("addCoursetohistory", help="Student adds a completed course to their history")
 @click.argument("student_id", type=str)
 @click.argument("code", type=str)
 @click.argument("grade", type=str)
 def addCourse(student_id, code, grade):
     add_course_to_course_history(student_id, code, grade)
+    print
 
 @student_cli.command("getCompleted", help="Get all of a student completed courses")
 @click.argument("student_id", type=str)
@@ -406,9 +428,9 @@ course = AppGroup('course', help = 'Program object commands')
 #     print(f'Course created with course code "{newcourse.courseCode}", name "{newcourse.courseName}", credits "{newcourse.credits}", ratings "{newcourse.rating}" and prerequites "{newcourse.prerequisites}"')
 
 
-@course.command('prereqs', help='Create a new course')
+@course.command('prereqs', help='get course prereq')
 @click.argument('code', type=str)
-def create_course_command(code):  
+def get_course_prereq_command(code):  
     prereqs = get_prerequisites(code)
     print(f'These are the prerequisites for {code}: {prereqs}') if prereqs else print(f'error')
 
@@ -419,24 +441,29 @@ def get_course(code):
     course_json = course.get_json()
     print(f'{course_json}') if course else print(f'error')
 
+@course.command("list", help="Lists courses in the database")
+@click.argument("format", default="string")
+def list_staff_command(format):
+    print(get_all_courses_new_json())
+
 @course.command('getprereqs', help='Get all prerequistes for a course')
 @click.argument('code', type=str)
 def get_course(code):  
     prereqs = get_prerequisites(code)
-    for r in prereqs:
-        print(f'{r.prereq_courseCode}')
+    print(f'{prereqs}')
 
 @course.command('nextsem', help='Add a course to offered courses')
 @click.argument('code', type=str)
 @click.argument('semester', type=str)
-def add_course(code, semester_id):
-    course = addSemesterCourses(code, semester_id)
-    print(f'Course Name: {course.courseName}') if course else print(f'error')
+def add_course(code, semester):
+    course = addSemesterCourses(code, semester)
+    print(f'Course Name: {course.courseTitle}') if course else print(f'error')
 
 @course.command('getNextSemCourses', help='Get all the courses offered next semester')
 @click.argument('semester', type=str)
-def allSemCourses(semester_id):
-    courses = getAllCourses(semester_id)
+def allSemCourses(semester):
+    courses = getAllCourses(semester)
+    
 
     if courses:
         for c in courses:

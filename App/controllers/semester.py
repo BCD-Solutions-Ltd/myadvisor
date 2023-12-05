@@ -61,3 +61,4 @@ def delete_semester(semester_id):
     db.session.commit()
 
     return jsonify({'message': 'Semester deleted successfully'})
+

@@ -12,3 +12,6 @@ class Semester(db.Model):
         self.id = sem_id
         self.semester_title = sem_title
         
+
+        
+        

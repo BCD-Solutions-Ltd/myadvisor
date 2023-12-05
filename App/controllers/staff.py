@@ -74,3 +74,4 @@ def get_staff_by_id(ID):
 #     except Exception as e:
 #         db.session.rollback()
 #         print(f"An error occurred while removing the course: {e}")
+

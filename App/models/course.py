@@ -9,17 +9,18 @@ class Course(db.Model):
     credits = db.Column(db.Integer)
     rating = db.Column(db.Integer)
     type = db.Column(db.String(5))
-    grade = db.Column(db.Float)
+    grade = db.Column(db.String(3))
     semester = db.Column(db.Integer)
     year = db.Column(db.Integer)
-    complete = db.Column(db.Boolean)
+    complete = db.Column(db.String(3))
+    prereq = db.Column(db.String(8))
     course_plan_id = db.Column(db.Integer, db.ForeignKey('course_plans.id'), nullable=False)
     
     
-    prereq = db.relationship('Prerequisites', backref='course', lazy=True)
+    prereqq = db.relationship('Prerequisites', backref='course', lazy=True)
 
     
-    def __init__(self, code, title, credits, ratings,  grade, type,  semester, year, complete, prereq):
+    def __init__(self, code, title, credits, ratings,  grade, type,  semester, year, complete, prereq,course_plan_id):
         self.id = code
         self.courseTitle = title
         self.credits = credits
@@ -30,6 +31,7 @@ class Course(db.Model):
         self.year = year
         self.complete = complete
         self.prereq = prereq
+        self.course_plan_id = course_plan_id
     
     def get_json(self):
         return{
@@ -42,5 +44,6 @@ class Course(db.Model):
             'Semester: ': self.semester,
             'Year: ': self.year,
             'Completed?': self.complete,
-            'Prerequisites: ': [prerequisites.get_json() for prerequisite in self.prerequisites]
+            'Prerequisites: ': self.prereq,
+            'Course_plan_id':self.course_plan_id
         }

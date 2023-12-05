@@ -1,4 +1,5 @@
 import pytest, unittest
+from App.controllers.coursePlan import get_strategy_instance
 from App.models import CoursePlan, CoursePlanCourses
 from App.controllers import create_CoursePlan, create_student, create_program, addCourseToPlan, enroll_in_programme, addSemesterCourses, generator, createCoursesfromFile, get_program_by_name, getCoursePlan, get_all_courses_by_planid, get_student, create_programCourse, removeCourse
 from App.main import create_app
@@ -111,14 +112,14 @@ class CoursePlanIntegrationTests(unittest.TestCase):
         program = get_program_by_name("Computer Science Major")
         student = get_student("1234")
         plan_id = enroll_in_programme("1234", program.id)
-
+        plantype = "easycourses"
         courseplan_courses = get_all_courses_by_planid(plan_id)
         course_codes = [course.code for course in courseplan_courses]
         for course_code in course_codes:
             removeCourse(student, course_code)
 
         # Create a easy graduation course plan
-        generator(student, "easy")
+        easycourses_strategy = get_strategy_instance(plantype)
         courseplan_courses = get_all_courses_by_planid(plan_id)
 
         self.assertIsNotNone(courseplan_courses)
@@ -166,5 +167,7 @@ class CoursePlanIntegrationTests(unittest.TestCase):
             'studentId': 1234
         }
         self.assertEqual(course_plan_json, expected_json)
+
+
 
 

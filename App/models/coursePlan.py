@@ -35,10 +35,10 @@ class PrioritizeElectivesStrategy(CoursePlanStrategy):
     
     
     #def __init__(self, plan_id, student_id,semester_id, strategy: CoursePlanStrategy):
-        #self.id = plan_id
-        #self.sem_id = semester_id
-        #self.studentId = student_id
-        #self._strategy = strategy
+        self.id = plan_id
+        self.sem_id = semester_id
+        self.studentId = student_id
+        self._strategy = strategy
         
 class CoursePlan(db.Model):
     __tablename__ = 'course_plans'

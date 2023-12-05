@@ -2,7 +2,7 @@ from App.models import User
 from App.database import db
 
 class Student(User):
-    
+    __tablename__ = 'students'
     id = db.Column(db.String(10), db.ForeignKey('user.id'), primary_key=True)
     name = db.Column(db.String(50))
     gpa = db.Column(db.Float) 
@@ -28,4 +28,6 @@ class Student(User):
             'GPA: ' : self.gpa
             
         }
+
+
 

@@ -15,11 +15,12 @@ class Program(db.Model):
     students = db.relationship('Student', back_populates='prog', uselist=False)
     
 
-    def __init__(self, name, core, elect, foun):
+    def __init__(self, name, core, elect, foun, department_id):
        self.name = name
        self.core_credits = core
        self.elective_credits = elect
        self.foun_credits = foun
+       self.department_id = department_id
 
 
     def get_json(self):
